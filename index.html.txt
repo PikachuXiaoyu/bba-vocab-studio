@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BBA Vocab Studio · 工商管理专业词汇学习系统</title>
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Google Fonts Inter & Noto Sans SC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans SC', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              500: '#3B82F6',
+              600: '#2563EB',
+              800: '#1E40AF',
+              900: '#1E3A8A'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* 平滑过渡与轻微卡片阴影 */
+    .academic-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
+    }
+    .fade-in {
+      animation: fadeIn 0.22s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ==================== 顶部全局导航栏 ==================== -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+      <!-- 品牌标识 / 返回章节地图 -->
+      <button onclick="navigateHome()" class="flex items-center gap-2.5 text-left group focus:outline-none">
+        <div class="w-9 h-9 rounded-xl bg-brand-900 text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:bg-brand-800 transition">
+          BBA
+        </div>
+        <div>
+          <div class="font-bold text-slate-900 text-sm sm:text-base tracking-tight leading-tight">
+            BBA Vocab Studio
+          </div>
+          <div class="text-[11px] text-slate-500 hidden sm:block">
+            工商管理系专业词汇 · 精学与考核系统
+          </div>
+        </div>
+      </button>
+
+      <!-- 右侧全局控件：语速切换 + 错词本 + 首页 -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- TTS 语速切换器 -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80" title="切换英语朗读语速">
+          <button id="btn-speed-normal" onclick="setSpeechRate(1.0)"
+            class="px-2.5 py-1 rounded-lg text-xs font-medium transition">
+            1.0x 正常
+          </button>
+          <button id="btn-speed-slow" onclick="setSpeechRate(0.8)"
+            class="px-2.5 py-1 rounded-lg text-xs font-medium transition">
+            0.8x 慢速
+          </button>
+        </div>
+
+        <!-- 全局错词本入口 -->
+        <button onclick="openErrorNotebook()"
+          class="relative flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 text-xs sm:text-sm font-semibold transition">
+          <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>错词本</span>
+          <span id="nav-error-count" class="px-1.5 py-0.5 text-[11px] rounded-full bg-rose-600 text-white font-bold">0</span>
+        </button>
+
+        <!-- 返回首页按钮 -->
+        <button id="btn-nav-home" onclick="navigateHome()"
+          class="hidden sm:flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium transition">
+          章节目录
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 主内容动态渲染容器 ==================== -->
+  <main id="app-main" class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <!-- 视图由 JS 渲染 -->
+  </main>
+
+  <!-- ==================== 轻量级全局提示条 (Toast) ==================== -->
+  <div id="toast-box" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-opacity duration-200">
+    <div id="toast-msg" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-medium shadow-lg"></div>
+  </div>
+
+  <!-- ==================== 自定义确认弹窗 (替代原生 confirm/alert) ==================== -->
+  <div id="modal-overlay" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 fade-in">
+      <h3 id="modal-title" class="text-lg font-bold text-slate-900 mb-2">确认操作</h3>
+      <p id="modal-desc" class="text-sm text-slate-600 leading-relaxed mb-6"></p>
+      <div class="flex justify-end gap-3">
+        <button id="modal-cancel" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium transition">
+          取消
+        </button>
+        <button id="modal-confirm" class="px-4 py-2 rounded-xl bg-brand-900 text-white hover:bg-brand-800 text-sm font-medium transition">
+          确认
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * 一、 工商管理系专业词汇库 (VOCABULARY DATA)
+     * 包含完整录制的 Chapter 01 · Management Basics (10词)
+     * 以及用于验证通关解锁机制的 Chapter 02 · Management Functions (5词预览)
+     * ============================================================================
+     */
+    const CHAPTERS_DATA = [
+      {
+        id: 'ch01',
+        number: 'Chapter 01',
+        title: 'Management Basics',
+        subtitle: '管理学基础核心概念 · 效率与效果、组织与层级',
+        words: [
+          {
+            id: 'ch01_w01',
+            chapterId: 'ch01',
+            indexLabel: '01 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Management',
+            phonetic: '/ˈmænɪdʒmənt/',
+            partOfSpeech: 'noun',
+            meaning: '管理；管理工作；管理学',
+            definitionLabel: 'English definition · 教材原文',
+            definition: 'The process of working with people and resources to accomplish organizational goals efficiently and effectively.',
+            extraNote: '',
+            zhUnderstanding: '与人和资源共同协作，以有效率且有效果的方式实现组织目标的过程。',
+            exampleEn: 'Good management helps a company achieve its organizational goals while making the best use of its resources.',
+            exampleZh: '良好的管理帮助公司实现组织目标，同时充分利用资源。',
+            collocations: [
+              'business management — 企业管理',
+              'management skills — 管理技能',
+              'management functions — 管理职能',
+              'senior management — 高层管理层'
+            ],
+            memoryTip: '记住教材定义的四个核心部分：people + resources + organizational goals + efficiently and effectively。这四部分组合起来就是 Management 的核心概念。',
+            firstLetterHint: 'M_________',
+            distractors: ['市场细分；客户群划分', '财务流动性；资产变现能力', '供应链采购流程'],
+            contextQuestion: {
+              sentence: 'Effective ______ involves coordinating people and resources to achieve company objectives without waste.',
+              answer: 'Management',
+              explanation: '此处作主语，指“与人和资源协作以实现组织目标的过程”，即 Management（管理）。'
+            }
+          },
+          {
+            id: 'ch01_w02',
+            chapterId: 'ch01',
+            indexLabel: '02 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Manager',
+            phonetic: '/ˈmænɪdʒər/',
+            partOfSpeech: 'noun',
+            meaning: '经理；管理者；主管',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'A person who is responsible for managing people and resources to achieve organizational goals.',
+            extraNote: '',
+            zhUnderstanding: '负责管理人员和资源，以实现组织目标的人。',
+            exampleEn: 'A manager must coordinate employees, make decisions, and monitor the team’s performance.',
+            exampleZh: '经理必须协调员工、作出决策，并监督团队的表现。',
+            collocations: [
+              'top-level manager — 高层管理者',
+              'middle-level manager — 中层管理者',
+              'frontline manager — 前线管理者',
+              'effective manager — 有效的管理者'
+            ],
+            memoryTip: 'Manager 是执行管理工作的人；Management 是管理这个过程或活动。注意两者词性都是名词，但指代的概念不同（一个是人，一个是过程）。',
+            firstLetterHint: 'M______',
+            distractors: ['外部利益相关者', '股东大会代表', '基层一线操作员'],
+            contextQuestion: {
+              sentence: 'As a frontline ______, Sarah directly supervises daily store operations and guides new staff members.',
+              answer: 'Manager',
+              explanation: 'frontline manager（前线管理者）指直接监督日常运营并指导一线员工的“管理者/主管”。'
+            }
+          },
+          {
+            id: 'ch01_w03',
+            chapterId: 'ch01',
+            indexLabel: '03 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Organization',
+            phonetic: '/ˌɔːrɡənəˈzeɪʃən/',
+            partOfSpeech: 'noun',
+            meaning: '组织；机构；团体',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'A group of people who work together in a structured way to achieve common goals.',
+            extraNote: '',
+            zhUnderstanding: '一群以有组织的方式共同工作、实现共同目标的人。',
+            exampleEn: 'A company is an organization in which people work together to achieve shared business goals.',
+            exampleZh: '公司是一种组织，员工通过共同工作来实现共同的商业目标。',
+            collocations: [
+              'business organization — 商业组织',
+              'organizational structure — 组织结构',
+              'organizational resources — 组织资源',
+              'organizational performance — 组织绩效'
+            ],
+            memoryTip: 'Organization 可以指公司、学校、非牟利机构等各种组织。它也可以指「组织安排」这个概念，具体意思要根据语境判断。',
+            firstLetterHint: 'O___________',
+            distractors: ['战略联盟协议', '单一业务部门', '行业监管法规'],
+            contextQuestion: {
+              sentence: 'Whether it is a multinational corporation or a non-profit charity, every ______ relies on structured teamwork.',
+              answer: 'Organization',
+              explanation: '无论是跨国企业还是非营利慈善机构，都属于为了共同目标而结构化协作的“组织/机构”（Organization）。'
+            }
+          },
+          {
+            id: 'ch01_w04',
+            chapterId: 'ch01',
+            indexLabel: '04 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Organizational goals',
+            phonetic: '/ˌɔːrɡənəˈzeɪʃənəl ɡoʊlz/',
+            partOfSpeech: 'noun phrase',
+            meaning: '组织目标；机构目标',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'The specific objectives that an organization aims to achieve through its activities and the use of resources.',
+            extraNote: '',
+            zhUnderstanding: '一个组织希望通过自身活动和资源运用而实现的具体目标。',
+            exampleEn: 'Increasing sales and improving customer satisfaction are common organizational goals.',
+            exampleZh: '增加销售额和提升客户满意度是常见的组织目标。',
+            collocations: [
+              'achieve organizational goals — 实现组织目标',
+              'set organizational goals — 制定组织目标',
+              'long-term goals — 长期目标',
+              'short-term goals — 短期目标'
+            ],
+            memoryTip: 'Goal = 目标。Organizational goals 指整个组织希望实现的目标。教材将它放在 Management 的核心定义中，值得重点记忆。',
+            firstLetterHint: 'O_____________ g____',
+            distractors: ['员工个人职业规划', '季度财务审计报告', '日常行政规章制度'],
+            contextQuestion: {
+              sentence: 'During the annual board meeting, executives set clear ______ such as expanding market share by 15%.',
+              answer: 'Organizational goals',
+              explanation: '将市场份额扩大 15% 属于企业通过经营活动希望达成的具体“组织目标”（Organizational goals）。'
+            }
+          },
+          {
+            id: 'ch01_w05',
+            chapterId: 'ch01',
+            indexLabel: '05 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Resource',
+            phonetic: '/ˈriːsɔːrs/',
+            partOfSpeech: 'noun',
+            meaning: '资源；可供利用的人力、物资或资金',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'Anything an organization can use to achieve its goals, including money, time, materials, and people.',
+            extraNote: '',
+            zhUnderstanding: '组织能够用来实现目标的任何资源，包括金钱、时间、材料和人员。',
+            exampleEn: 'Managers must allocate resources carefully to avoid unnecessary waste.',
+            exampleZh: '管理者必须谨慎分配资源，以避免不必要的浪费。',
+            collocations: [
+              'human resources — 人力资源',
+              'financial resources — 财务资源',
+              'natural resources — 自然资源',
+              'allocate resources — 分配资源',
+              'limited resources — 有限资源'
+            ],
+            memoryTip: '课件在解释 Efficiency 时，特别列出了 money、time、materials 和 people。这四种要素可以直接用来理解 Resource。',
+            firstLetterHint: 'R_______',
+            distractors: ['固定资产折旧', '企业无形商誉', '市场准入门槛'],
+            contextQuestion: {
+              sentence: 'Because startup capital and staff time are limited, founders must allocate every ______ wisely.',
+              answer: 'Resource',
+              explanation: '创业资金和员工时间都属于可供利用的“资源”（Resource），需要谨慎分配。'
+            }
+          },
+          {
+            id: 'ch01_w06',
+            chapterId: 'ch01',
+            indexLabel: '06 / 10',
+            tag: 'EXAM ESSENTIAL',
+            word: 'Efficiency',
+            phonetic: '/ɪˈfɪʃənsi/',
+            partOfSpeech: 'noun',
+            meaning: '效率；资源利用效率',
+            definitionLabel: 'English definition · 教材原文',
+            definition: 'Achieving goals with minimal waste of resources.',
+            extraNote: '教材补充解释：Making the best possible use of money, time, materials, and people.',
+            zhUnderstanding: '以最少的资源浪费实现目标，尽可能善用金钱、时间、材料和人员。',
+            exampleEn: 'The company improved its efficiency by reducing production waste and using fewer resources.',
+            exampleZh: '公司通过减少生产浪费和使用更少资源来提高效率。',
+            collocations: [
+              'improve efficiency — 提高效率',
+              'operational efficiency — 运营效率',
+              'increase efficiency — 增加效率',
+              'resource efficiency — 资源利用效率'
+            ],
+            memoryTip: 'Efficiency = Doing things right（把事情做对）。记住关键词：minimal waste of resources。题目如果强调节省时间、金钱、人力或材料，通常就在考 Efficiency。',
+            firstLetterHint: 'E_________',
+            distractors: ['品牌溢价能力', '客户忠诚度指数', '市场扩张速度'],
+            contextQuestion: {
+              sentence: 'By automating repetitive warehouse tasks and cutting raw material waste, the factory significantly boosted its operational ______.',
+              answer: 'Efficiency',
+              explanation: '减少原材料浪费、节省资源投入，体现的是“以最少资源浪费实现目标”的 Efficiency（效率）。'
+            }
+          },
+          {
+            id: 'ch01_w07',
+            chapterId: 'ch01',
+            indexLabel: '07 / 10',
+            tag: 'EXAM ESSENTIAL',
+            word: 'Effectiveness',
+            phonetic: '/ɪˈfektɪvnəs/',
+            partOfSpeech: 'noun',
+            meaning: '效果；有效性；目标达成程度',
+            definitionLabel: 'English definition · 教材原文',
+            definition: 'Achieving organizational goals.',
+            extraNote: '',
+            zhUnderstanding: '成功实现组织所设定的目标。',
+            exampleEn: 'The manager increased the effectiveness of the marketing campaign by reaching the target audience and achieving higher sales.',
+            exampleZh: '经理通过接触目标受众并实现更高销售额，提高了营销活动的成效。',
+            collocations: [
+              'organizational effectiveness — 组织有效性',
+              'management effectiveness — 管理成效',
+              'improve effectiveness — 提高成效',
+              'effective management — 有效管理'
+            ],
+            memoryTip: 'Effectiveness = Doing the right things（做对的事情）。考试必考区分：Efficiency 看资源有没有被浪费（过程投入）；Effectiveness 看目标有没有达成（最终结果）。',
+            firstLetterHint: 'E____________',
+            distractors: ['成本控制比率', '供应链响应周期', '内部审计合规性'],
+            contextQuestion: {
+              sentence: 'Although the ad campaign was expensive, it successfully hit the annual sales target, proving its high ______.',
+              answer: 'Effectiveness',
+              explanation: '尽管成本较高，但最终成功达成了年度销售目标，这考察的是“目标是否达成”，即 Effectiveness（效果/有效性）。'
+            }
+          },
+          {
+            id: 'ch01_w08',
+            chapterId: 'ch01',
+            indexLabel: '08 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Performance',
+            phonetic: '/pərˈfɔːrməns/',
+            partOfSpeech: 'noun',
+            meaning: '表现；绩效；工作成果',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'The results or level of achievement of an individual, team, or organization in carrying out its activities.',
+            extraNote: '',
+            zhUnderstanding: '个人、团队或组织在执行工作和活动时所取得的成果或表现水平。',
+            exampleEn: 'Managers monitor employee performance to identify areas that need improvement.',
+            exampleZh: '管理者监督员工绩效，以找出需要改善的地方。',
+            collocations: [
+              'employee performance — 员工表现',
+              'organizational performance — 组织绩效',
+              'high performance — 高绩效',
+              'performance evaluation — 绩效评估',
+              'monitor performance — 监督表现'
+            ],
+            memoryTip: 'Performance 强调实际表现和成果。课件在管理职能 Controlling（控制）中提到监测 performance，并与标准对比后作出必要调整。',
+            firstLetterHint: 'P__________',
+            distractors: ['岗位职责说明书', '员工薪酬福利包', '组织文化价值观'],
+            contextQuestion: {
+              sentence: 'At the end of each quarter, HR conducts a formal ______ evaluation to review each employee’s actual output.',
+              answer: 'Performance',
+              explanation: 'performance evaluation（绩效评估）用于衡量员工或团队在执行工作时的实际表现与成果。'
+            }
+          },
+          {
+            id: 'ch01_w09',
+            chapterId: 'ch01',
+            indexLabel: '09 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Coordination',
+            phonetic: '/koʊˌɔːrdɪˈneɪʃən/',
+            partOfSpeech: 'noun',
+            meaning: '协调；统筹；协同配合',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'The process of organizing and aligning people and resources so that they work together effectively toward common goals.',
+            extraNote: '',
+            zhUnderstanding: '组织并协调人员与资源，使它们能够有效合作，共同实现目标。',
+            exampleEn: 'Effective coordination between departments helps the organization complete projects on time.',
+            exampleZh: '部门之间有效的协调有助于组织按时完成项目。',
+            collocations: [
+              'coordination between departments — 部门之间的协调',
+              'effective coordination — 有效协调',
+              'resource coordination — 资源协调',
+              'coordinate activities — 协调活动'
+            ],
+            memoryTip: 'Coordinate 是动词，表示协调；Coordination 是名词，表示协调这一过程。课件在 Organizing（组织职能）的定义中使用了 assembling and coordinating resources。',
+            firstLetterHint: 'C___________',
+            distractors: ['权力下放与授权', '纵向层级审批', '外部竞争对手分析'],
+            contextQuestion: {
+              sentence: 'Launching a new product on schedule requires close ______ between the R&D, marketing, and supply chain departments.',
+              answer: 'Coordination',
+              explanation: '研发、市场与供应链部门之间的紧密“协调/协同配合”（Coordination）才能保证按时上线产品。'
+            }
+          },
+          {
+            id: 'ch01_w10',
+            chapterId: 'ch01',
+            indexLabel: '10 / 10',
+            tag: 'CORE VOCABULARY',
+            word: 'Hierarchy',
+            phonetic: '/ˈhaɪərɑːrki/',
+            partOfSpeech: 'noun',
+            meaning: '层级；等级制度；组织阶层',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'A system in which people or positions are arranged in different levels of authority and responsibility.',
+            extraNote: '',
+            zhUnderstanding: '一种将人员或职位按照不同的权力和责任等级排列的制度。',
+            exampleEn: 'In a typical organizational hierarchy, top-level managers supervise the overall organization, while frontline managers oversee daily operations.',
+            exampleZh: '在典型的组织层级结构中，高层管理者负责监督整个组织，而前线管理者负责日常运营。',
+            collocations: [
+              'organizational hierarchy — 组织层级结构',
+              'management hierarchy — 管理层级',
+              'hierarchical structure — 等级结构',
+              'levels of hierarchy — 层级'
+            ],
+            memoryTip: '可以结合课件中的三个管理层级记忆：Top-level managers（高层管理者）、Middle-level managers（中层管理者）、Frontline managers（前线管理者）。',
+            firstLetterHint: 'H________',
+            distractors: ['扁平化项目小组', '跨职能矩阵团队', '非正式沟通网络'],
+            contextQuestion: {
+              sentence: 'In a traditional corporate ______, authority flows downward from top executives to middle and frontline managers.',
+              answer: 'Hierarchy',
+              explanation: '权力从高层流向中层和前线管理者的等级结构，即组织“层级”（Hierarchy）。'
+            }
+          }
+        ]
+      },
+      {
+        id: 'ch02',
+        number: 'Chapter 02',
+        title: 'Management Functions (Demo)',
+        subtitle: '四大管理职能 · 计划、组织、领导与控制（通关 Chapter 01 后自动解锁）',
+        words: [
+          {
+            id: 'ch02_w01',
+            chapterId: 'ch02',
+            indexLabel: '01 / 05',
+            tag: 'EXAM ESSENTIAL',
+            word: 'Planning',
+            phonetic: '/ˈplænɪŋ/',
+            partOfSpeech: 'noun',
+            meaning: '计划职能；规划',
+            definitionLabel: 'English definition · 教材原文',
+            definition: 'Specifying the goals to be achieved and deciding in advance the appropriate actions needed to achieve those goals.',
+            extraNote: '',
+            zhUnderstanding: '明确要实现的目标，并提前决定实现这些目标所需的适当行动。',
+            exampleEn: 'Strategic planning allows managers to anticipate market changes and allocate budgets proactively.',
+            exampleZh: '战略规划使管理者能够预测市场变化并主动分配预算。',
+            collocations: ['strategic planning — 战略规划', 'contingency planning — 应急计划', 'operational planning — 运营计划'],
+            memoryTip: '四大管理职能（POLC）之首：Planning 解决的是“去哪里（定目标）”和“怎么去（定行动方案）”。',
+            firstLetterHint: 'P_______',
+            distractors: ['监督与偏差纠正', '员工激励与沟通', '岗位分工与资源配置'],
+            contextQuestion: {
+              sentence: '______ is the primary management function that involves setting objectives and determining a course of action in advance.',
+              answer: 'Planning',
+              explanation: '提前设定目标并决定行动方案，正是四大管理职能中的“计划职能”（Planning）。'
+            }
+          },
+          {
+            id: 'ch02_w02',
+            chapterId: 'ch02',
+            indexLabel: '02 / 05',
+            tag: 'EXAM ESSENTIAL',
+            word: 'Organizing',
+            phonetic: '/ˈɔːrɡənaɪzɪŋ/',
+            partOfSpeech: 'noun',
+            meaning: '组织职能；资源配置与结构搭建',
+            definitionLabel: 'English definition · 教材原文',
+            definition: 'Assembling and coordinating the human, financial, physical, informational, and other resources needed to achieve goals.',
+            extraNote: '',
+            zhUnderstanding: '汇集并协调实现目标所需的人力、财务、物力、信息及其他资源。',
+            exampleEn: 'Organizing includes grouping tasks into departments and assigning authority to team leaders.',
+            exampleZh: '组织职能包括将任务划分为不同部门，并向团队负责人授予职权。',
+            collocations: ['organizing resources — 组织资源', 'delegating authority — 授予职权', 'designing jobs — 岗位设计'],
+            memoryTip: '抓住定义里的两个核心动词：Assembling（汇集）和 Coordinating（协调）各类资源。',
+            firstLetterHint: 'O_________',
+            distractors: ['设定年度销售指标', '核查财务报表误差', '鼓舞团队士气'],
+            contextQuestion: {
+              sentence: 'After setting the annual goals, the director moved to ______, grouping staff into specialized project teams.',
+              answer: 'Organizing',
+              explanation: '将人员划分为专业项目团队、配置资源与权责，属于“组织职能”（Organizing）。'
+            }
+          },
+          {
+            id: 'ch02_w03',
+            chapterId: 'ch02',
+            indexLabel: '03 / 05',
+            tag: 'EXAM ESSENTIAL',
+            word: 'Leading',
+            phonetic: '/ˈliːdɪŋ/',
+            partOfSpeech: 'noun',
+            meaning: '领导职能；激励与引导团队',
+            definitionLabel: 'English definition · 教材原文',
+            definition: 'Stimulating people to be high performers through motivation, communication, and guidance.',
+            extraNote: '',
+            zhUnderstanding: '通过激励、沟通和指导，激发员工成为高绩效者。',
+            exampleEn: 'Effective leading inspires employees to stay committed even during challenging organizational transitions.',
+            exampleZh: '有效的领导能够激励员工即使在艰难的组织转型期也保持投入。',
+            collocations: ['leading teams — 领导团队', 'motivating employees — 激励员工', 'visionary leadership — 愿景型领导'],
+            memoryTip: 'Leading 的关键词是 Stimulating people（激发人）和 high performers（高绩效者），核心在于“人际沟通与激励”。',
+            firstLetterHint: 'L______',
+            distractors: ['制定季度预算上限', '盘点仓库库存数量', '划分部门汇报线条'],
+            contextQuestion: {
+              sentence: 'By recognizing achievements and communicating a clear vision, managers fulfill the ______ function.',
+              answer: 'Leading',
+              explanation: '通过认可成就与传达愿景来激励员工，体现的是管理职能中的“领导职能”（Leading）。'
+            }
+          },
+          {
+            id: 'ch02_w04',
+            chapterId: 'ch02',
+            indexLabel: '04 / 05',
+            tag: 'EXAM ESSENTIAL',
+            word: 'Controlling',
+            phonetic: '/kənˈtroʊlɪŋ/',
+            partOfSpeech: 'noun',
+            meaning: '控制职能；监控与纠偏',
+            definitionLabel: 'English definition · 教材原文',
+            definition: 'Monitoring performance and making needed changes to ensure goals are met.',
+            extraNote: '',
+            zhUnderstanding: '监督绩效表现并作出必要调整，以确保目标得以实现。',
+            exampleEn: 'Controlling ensures that actual production output stays aligned with the initial quality standards.',
+            exampleZh: '控制职能确保实际生产产出与最初的质量标准保持一致。',
+            collocations: ['quality control — 质量控制', 'monitoring performance — 监督绩效', 'corrective action — 纠正措施'],
+            memoryTip: 'Controlling 不是“独裁控制”，而是“测量实际绩效 → 对比标准 → 发现偏差并纠正（making needed changes）”。',
+            firstLetterHint: 'C__________',
+            distractors: ['招聘外部高管人才', '起草品牌宣传口号', '拓展海外分销渠道'],
+            contextQuestion: {
+              sentence: 'When monthly sales fell behind target, the manager adjusted the promotion strategy as part of ______.',
+              answer: 'Controlling',
+              explanation: '发现月度销售落后于目标后及时调整策略，正是“监控绩效并作出必要调整”的 Controlling（控制职能）。'
+            }
+          },
+          {
+            id: 'ch02_w05',
+            chapterId: 'ch02',
+            indexLabel: '05 / 05',
+            tag: 'CORE VOCABULARY',
+            word: 'Stakeholder',
+            phonetic: '/ˈsteɪkhoʊldər/',
+            partOfSpeech: 'noun',
+            meaning: '利益相关者',
+            definitionLabel: 'English definition · 辅助学习定义',
+            definition: 'Any individual, group, or organization that can affect or is affected by the achievement of an organization’s objectives.',
+            extraNote: '',
+            zhUnderstanding: '能够影响组织目标实现，或受组织目标实现影响的任何个人、群体或组织。',
+            exampleEn: 'Customers, employees, suppliers, and local communities are all key stakeholders of a business.',
+            exampleZh: '客户、员工、供应商和当地社区都是企业的重要利益相关者。',
+            collocations: ['key stakeholders — 核心利益相关者', 'stakeholder analysis — 利益相关者分析', 'internal stakeholders — 内部利益相关者'],
+            memoryTip: '不要把 Stakeholder（利益相关者，范围广）和 Shareholder（股东，仅限出资人）搞混！',
+            firstLetterHint: 'S__________',
+            distractors: ['公司控股股东', '外部审计机构', '一线销售代表'],
+            contextQuestion: {
+              sentence: 'Before building a new factory, the firm consulted local residents, suppliers, and other key ______.',
+              answer: 'Stakeholder',
+              explanation: '当地居民、供应商等受企业决策影响的群体统称为“利益相关者”（Stakeholder）。'
+            }
+          }
+        ]
+      }
+    ];
+
+    /**
+     * ============================================================================
+     * 二、 全局持久化状态管理 (LOCALSTORAGE & STATE MACHINE)
+     * ============================================================================
+     */
+    const STORAGE_KEY = 'bba_vocab_studio_state_v1';
+
+    // 默认初始状态
+    function getDefaultState() {
+      return {
+        speechRate: 1.0, // 1.0 (正常) 或 0.8 (慢速)
+        unlockedChapters: ['ch01'], // 默认解锁第一章
+        completedChapters: [], // 已通关章节 ID 列表
+        // 按 wordId 记录双维度错误计数器：{ [wordId]: { totalErrors: number, consecutiveErrors: number } }
+        wordStats: {},
+        // 断点续学存储：{ [chapterId]: ChapterProgressObject }
+        chapterProgress: {}
+      };
+    }
+
+    let appState = loadState();
+
+    // 当前视图路由状态（不持久化临时弹窗，但章节进度实时持久化）
+    let currentRoute = {
+      view: 'home', // 'home' | 'chapter' | 'notebook' | 'error_practice'
+      chapterId: 'ch01',
+      notebookFilter: 'all', // 'all' | 'ch01' | 'ch02' ...
+      practiceSession: null // 错词本专项训练的临时会话状态
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getDefaultState();
+        const parsed = JSON.parse(raw);
+        return {
+          ...getDefaultState(),
+          ...parsed,
+          wordStats: parsed.wordStats || {},
+          chapterProgress: parsed.chapterProgress || {},
+          unlockedChapters: Array.isArray(parsed.unlockedChapters) && parsed.unlockedChapters.length > 0
+            ? parsed.unlockedChapters
+            : ['ch01'],
+          completedChapters: Array.isArray(parsed.completedChapters) ? parsed.completedChapters : []
+        };
+      } catch (e) {
+        console.error('读取进度失败，已恢复默认状态:', e);
+        return getDefaultState();
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        updateGlobalBadges();
+      } catch (e) {
+        console.error('保存进度失败:', e);
+      }
+    }
+
+    // 辅助：根据 wordId 获取完整单词对象
+    function findWordById(wordId) {
+      for (const ch of CHAPTERS_DATA) {
+        const found = ch.words.find(w => w.id === wordId);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function findChapterById(chapterId) {
+      return CHAPTERS_DATA.find(c => c.id === chapterId) || CHAPTERS_DATA[0];
+    }
+
+    /**
+     * ============================================================================
+     * 三、 英语语音朗读引擎 (WEB SPEECH API · 优先原生英音 + 语速 + 防叠加)
+     * ============================================================================
+     */
+    let selectedEnglishVoice = null;
+
+    function initSpeechVoices() {
+      if (!('speechSynthesis' in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return;
+
+      // 优先筛选高品质原生英语语音包（en-US / en-GB）
+      const enVoices = voices.filter(v => v.lang && (v.lang.startsWith('en-US') || v.lang.startsWith('en-GB') || v.lang.startsWith('en')));
+      selectedEnglishVoice =
+        enVoices.find(v => /Google US English|Microsoft Aria|Microsoft Guy|Samantha|Daniel|Alex/i.test(v.name)) ||
+        enVoices.find(v => v.lang === 'en-US') ||
+        enVoices[0] ||
+        null;
+    }
+
+    if ('speechSynthesis' in window) {
+      initSpeechVoices();
+      window.speechSynthesis.onvoiceschanged = initSpeechVoices;
+    }
+
+    /**
+     * 播放英语发音（严格执行 cancel() 防叠加）
+     * @param {string} text - 要朗读的英文单词或例句
+     */
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) {
+        showToast('当前浏览器不支持原生语音合成功能');
+        return;
+      }
+      // 关键防叠加控制：立即取消当前正在播放或排队的语音
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      if (selectedEnglishVoice) {
+        utterance.voice = selectedEnglishVoice;
+      }
+      utterance.rate = appState.speechRate || 1.0;
+      utterance.pitch = 1.0;
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function setSpeechRate(rate) {
+      appState.speechRate = rate;
+      saveState();
+      updateSpeedButtonsUI();
+      showToast(`语音语速已切换为 ${rate === 1.0 ? '1.0x 正常速度' : '0.8x 慢速清晰模式'}`);
+    }
+
+    function updateSpeedButtonsUI() {
+      const btnNormal = document.getElementById('btn-speed-normal');
+      const btnSlow = document.getElementById('btn-speed-slow');
+      if (!btnNormal || !btnSlow) return;
+
+      if (appState.speechRate === 1.0) {
+        btnNormal.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-brand-900 shadow-xs transition';
+        btnSlow.className = 'px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition';
+      } else {
+        btnSlow.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-brand-900 shadow-xs transition';
+        btnNormal.className = 'px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition';
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 四、 文本规范化、洗牌算法、拼写对比 Diff 与双维度错词计数
+     * ============================================================================
+     */
+
+    /**
+     * 严谨的默写文本归一化：
+     * 1. 忽略首尾空格 (.trim())
+     * 2. 不区分大小写 (.toLowerCase())
+     * 3. 连续多个空格合并为单个空格 (.replace(/\s+/g, ' '))
+     * 4. 单词/词组内部的单个合法空格严格保留（例如 "organizational goals" 不可写成 "organizationalgoals"）
+     */
+    function normalizeDictationText(str) {
+      if (typeof str !== 'string') return '';
+      return str.trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    // Fisher-Yates 随机洗牌算法
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    /**
+     * 生成字符级拼写差异高亮 HTML（用于默写答错时的直观反馈）
+     */
+    function buildSpellingDiffHtml(userRaw, targetStandard) {
+      const userNorm = userRaw.trim().replace(/\s+/g, ' ');
+      const target = targetStandard.trim();
+      const maxLen = Math.max(userNorm.length, target.length);
+      let userHtml = '';
+
+      for (let i = 0; i < maxLen; i++) {
+        const uChar = userNorm[i];
+        const tChar = target[i];
+        if (uChar === undefined) {
+          // 漏写字符
+          userHtml += `<span class="inline-block px-1 mx-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-mono text-xs" title="此处漏写">_</span>`;
+        } else if (tChar === undefined || uChar.toLowerCase() !== tChar.toLowerCase()) {
+          // 错写或多写字符
+          const displayChar = uChar === ' ' ? '␣' : escapeHtml(uChar);
+          userHtml += `<span class="inline-block px-1 mx-0.5 rounded bg-rose-100 text-rose-700 line-through font-bold font-mono">${displayChar}</span>`;
+        } else {
+          // 正确字符
+          const displayChar = uChar === ' ' ? '&nbsp;' : escapeHtml(uChar);
+          userHtml += `<span class="text-emerald-700 font-semibold font-mono">${displayChar}</span>`;
+        }
+      }
+
+      return `
+        <div class="mt-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm space-y-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider w-20">你的输入：</span>
+            <div class="tracking-wide">${userHtml || '<span class="text-slate-400 italic">（空）</span>'}</div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider w-20">标准拼写：</span>
+            <div class="font-mono font-bold text-emerald-700 tracking-wide">${escapeHtml(targetStandard)}</div>
+          </div>
+          <p class="text-[11px] text-slate-500 pt-1">提示：红色删除线为拼写不符或多余字符，黄色下划线 <code class="bg-amber-100 px-1 rounded">_</code> 为漏写字符；短语内部的空格必须保留。</p>
+        </div>
+      `;
+    }
+
+    /**
+     * 更新单词双维度错误计数器（仅在首次提交该独立题目时调用）
+     * - 答错：totalErrors + 1，consecutiveErrors + 1
+     * - 答对：totalErrors 保持不变（绝不清零），consecutiveErrors 重置为 0
+     */
+    function recordWordAttempt(wordId, isCorrect) {
+      if (!appState.wordStats[wordId]) {
+        appState.wordStats[wordId] = { totalErrors: 0, consecutiveErrors: 0 };
+      }
+      if (isCorrect) {
+        appState.wordStats[wordId].consecutiveErrors = 0;
+      } else {
+        appState.wordStats[wordId].totalErrors += 1;
+        appState.wordStats[wordId].consecutiveErrors += 1;
+      }
+      saveState();
+      return appState.wordStats[wordId];
+    }
+
+    function getWordErrorStat(wordId) {
+      return appState.wordStats[wordId] || { totalErrors: 0, consecutiveErrors: 0 };
+    }
+
+    /**
+     * ============================================================================
+     * 五、 考核题目工厂与断点状态构建器 (ASSESSMENT BUILDER)
+     * ============================================================================
+     */
+
+    /**
+     * 为指定单词列表构建三阶段完整考核题库（选项均在创建时洗牌并保存至状态，保证断点恢复一致性）
+     * @param {Array} targetWords - 本轮要考核的单词对象数组
+     * @param {Array} distractorPoolWords - 用于抽取同章/同领域干扰项的词池
+     */
+    function buildThreeStageQuestions(targetWords, distractorPoolWords) {
+      // 阶段 1：四选一认词（优先从同章其他词汇释义中抽取干扰项）
+      const stage1 = shuffleArray(targetWords).map((w, idx) => {
+        const samePoolMeanings = distractorPoolWords
+          .filter(other => other.id !== w.id && other.meaning !== w.meaning)
+          .map(other => other.meaning);
+
+        let chosenDistractors = shuffleArray(samePoolMeanings).slice(0, 3);
+        // 若词数不足 4 个，使用预设的专业领域 distractors 兜底补足
+        if (chosenDistractors.length < 3 && Array.isArray(w.distractors)) {
+          for (const d of w.distractors) {
+            if (chosenDistractors.length >= 3) break;
+            if (d !== w.meaning && !chosenDistractors.includes(d)) {
+              chosenDistractors.push(d);
+            }
+          }
+        }
+
+        const options = shuffleArray([w.meaning, ...chosenDistractors]);
+        return {
+          uid: `s1_${w.id}_${idx}`,
+          stage: 1,
+          wordId: w.id,
+          options,
+          correctAnswer: w.meaning,
+          submitted: false,
+          userAnswer: null,
+          isCorrect: null
+        };
+      });
+
+      // 阶段 2：听音 + 首字母 + 中文释义默写
+      const stage2 = shuffleArray(targetWords).map((w, idx) => ({
+        uid: `s2_${w.id}_${idx}`,
+        stage: 2,
+        wordId: w.id,
+        correctAnswer: w.word,
+        submitted: false,
+        userAnswer: '',
+        isCorrect: null
+      }));
+
+      // 阶段 3：简单场景应用（商科语境选词）
+      const stage3 = shuffleArray(targetWords).map((w, idx) => {
+        const samePoolWords = distractorPoolWords
+          .filter(other => other.id !== w.id && other.word !== w.word)
+          .map(other => other.word);
+
+        let chosenWordDistractors = shuffleArray(samePoolWords).slice(0, 3);
+        // 若词池不足 4 个，从全局其他章节补充商科词汇作为干扰项
+        if (chosenWordDistractors.length < 3) {
+          const globalWords = CHAPTERS_DATA.flatMap(c => c.words)
+            .filter(other => other.id !== w.id && !chosenWordDistractors.includes(other.word))
+            .map(other => other.word);
+          for (const gw of shuffleArray(globalWords)) {
+            if (chosenWordDistractors.length >= 3) break;
+            chosenWordDistractors.push(gw);
+          }
+        }
+
+        const options = shuffleArray([w.word, ...chosenWordDistractors]);
+        return {
+          uid: `s3_${w.id}_${idx}`,
+          stage: 3,
+          wordId: w.id,
+          options,
+          correctAnswer: w.word,
+          submitted: false,
+          userAnswer: null,
+          isCorrect: null
+        };
+      });
+
+      return { 1: stage1, 2: stage2, 3: stage3 };
+    }
+
+    /**
+     * 获取或初始化某一章节的学习/考核进度（支持断点续学）
+     */
+    function ensureChapterProgress(chapterId) {
+      if (!appState.chapterProgress[chapterId]) {
+        const chapter = findChapterById(chapterId);
+        appState.chapterProgress[chapterId] = {
+          mode: 'flashcards', // 'flashcards' | 'assessment' | 'summary'
+          flashcardIndex: 0,
+          viewedCards: [0],
+          currentStage: 1, // 1 | 2 | 3
+          currentQuestionIndex: 0,
+          questions: buildThreeStageQuestions(chapter.words, chapter.words)
+        };
+        saveState();
+      }
+      return appState.chapterProgress[chapterId];
+    }
+
+    /**
+     * ============================================================================
+     * 六、 视图导航与渲染逻辑 (VIEWS RENDERING)
+     * ============================================================================
+     */
+
+    function navigateHome() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      currentRoute.view = 'home';
+      render();
+    }
+
+    function openChapter(chapterId, forceMode = null) {
+      if (!appState.unlockedChapters.includes(chapterId)) {
+        showToast('请先完成前一章节的考核以解锁本章节');
+        return;
+      }
+      const prog = ensureChapterProgress(chapterId);
+      if (forceMode === 'flashcards') {
+        prog.mode = 'flashcards';
+        saveState();
+      } else if (forceMode === 'assessment') {
+        if (prog.mode === 'summary') {
+          // 如果已完成过一轮想再考一次，重新生成题组
+          const chapter = findChapterById(chapterId);
+          prog.currentStage = 1;
+          prog.currentQuestionIndex = 0;
+          prog.questions = buildThreeStageQuestions(chapter.words, chapter.words);
+        }
+        prog.mode = 'assessment';
+        saveState();
+      }
+      currentRoute.view = 'chapter';
+      currentRoute.chapterId = chapterId;
+      render();
+    }
+
+    function openErrorNotebook() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      currentRoute.view = 'notebook';
+      render();
+    }
+
+    function updateGlobalBadges() {
+      const errorWordsCount = Object.values(appState.wordStats).filter(s => s.totalErrors > 0).length;
+      const badge = document.getElementById('nav-error-count');
+      if (badge) badge.textContent = errorWordsCount;
+
+      const homeBtn = document.getElementById('btn-nav-home');
+      if (homeBtn) {
+        homeBtn.classList.toggle('hidden', currentRoute.view === 'home');
+      }
+    }
+
+    function render() {
+      updateSpeedButtonsUI();
+      updateGlobalBadges();
+      const main = document.getElementById('app-main');
+
+      if (currentRoute.view === 'home') {
+        main.innerHTML = renderHomeView();
+      } else if (currentRoute.view === 'chapter') {
+        main.innerHTML = renderChapterView(currentRoute.chapterId);
+      } else if (currentRoute.view === 'notebook') {
+        main.innerHTML = renderErrorNotebookView();
+      } else if (currentRoute.view === 'error_practice') {
+        main.innerHTML = renderErrorPracticeView();
+      }
+    }
+
+    /**
+     * ----------------------------------------------------------------------------
+     * 视图 1：章节地图 / 首页 (HOME VIEW)
+     * ----------------------------------------------------------------------------
+     */
+    function renderHomeView() {
+      const totalWords = CHAPTERS_DATA.reduce((sum, c) => sum + c.words.length, 0);
+      const completedCount = appState.completedChapters.length;
+      const errorCount = Object.values(appState.wordStats).filter(s => s.totalErrors > 0).length;
+
+      const chaptersHtml = CHAPTERS_DATA.map((ch, idx) => {
+        const isUnlocked = appState.unlockedChapters.includes(ch.id);
+        const isCompleted = appState.completedChapters.includes(ch.id);
+        const prog = appState.chapterProgress[ch.id];
+
+        // 计算本章错词数
+        const chErrorCount = ch.words.filter(w => getWordErrorStat(w.id).totalErrors > 0).length;
+
+        // 判断是否有进行中的考核断点
+        let hasAssessmentResume = false;
+        let resumeLabel = '';
+        if (prog && prog.mode === 'assessment') {
+          const answeredCount = [1, 2, 3].reduce(
+            (acc, st) => acc + prog.questions[st].filter(q => q.submitted).length,
+            0
+          );
+          const totalQ = ch.words.length * 3;
+          if (answeredCount > 0 && answeredCount < totalQ) {
+            hasAssessmentResume = true;
+            resumeLabel = `考核进行中 · 阶段 ${prog.currentStage}/3（已完成 ${answeredCount}/${totalQ} 题）`;
+          }
+        }
+
+        let statusBadge = '';
+        if (isCompleted) {
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">✓ 已通关</span>`;
+        } else if (isUnlocked) {
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-800 border border-brand-200">● 学习中</span>`;
+        } else {
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">🔒 未解锁</span>`;
+        }
+
+        return `
+          <div class="academic-card rounded-2xl p-5 sm:p-6 transition ${isUnlocked ? 'hover:border-brand-300' : 'opacity-75 bg-slate-50/70'}">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <div>
+                <div class="flex items-center gap-2.5 mb-1">
+                  <span class="text-xs font-bold uppercase tracking-wider text-brand-700">${ch.number}</span>
+                  ${statusBadge}
+                  <span class="text-xs text-slate-400">· ${ch.words.length} 个核心词汇</span>
+                </div>
+                <h2 class="text-lg sm:text-xl font-bold text-slate-900">${ch.title}</h2>
+                <p class="text-sm text-slate-500 mt-0.5">${ch.subtitle}</p>
+              </div>
+
+              ${chErrorCount > 0 ? `
+                <button onclick="openChapterErrorFilter('${ch.id}')" class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition">
+                  本章错词 (${chErrorCount}) →
+                </button>
+              ` : ''}
+            </div>
+
+            ${hasAssessmentResume ? `
+              <div class="mb-4 px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs text-amber-900">
+                <span class="font-medium">⏱ 检测到上次未完成的考核进度：${resumeLabel}</span>
+              </div>
+            ` : ''}
+
+            <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              ${isUnlocked ? `
+                <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                  <button onclick="openChapter('${ch.id}', 'flashcards')"
+                    class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold transition flex items-center justify-center gap-1.5">
+                    <span>📇 单词卡精读</span>
+                  </button>
+                  <button onclick="openChapter('${ch.id}', '${hasAssessmentResume ? '' : 'assessment'}')"
+                    class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-sm font-semibold shadow-xs transition flex items-center justify-center gap-1.5">
+                    <span>${hasAssessmentResume ? '继续上次考核 →' : (isCompleted ? '再次考核复习 →' : '开始三阶段考核 →')}</span>
+                  </button>
+                </div>
+              ` : `
+                <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                  <span>完成 ${CHAPTERS_DATA[idx - 1]?.number || '上一章'} 的三阶段考核流程后自动解锁（不限制正确率）</span>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="fade-in space-y-6">
+          <!-- 顶部学院风概览横幅 -->
+          <div class="academic-card rounded-2xl p-6 sm:p-7 bg-gradient-to-br from-white via-white to-brand-50/40">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span class="inline-block px-2.5 py-1 rounded-md bg-brand-900/10 text-brand-900 text-xs font-bold tracking-wide mb-2">
+                  BUSINESS ADMINISTRATION · 专业课程词汇库
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                  工商管理专业英语词汇学习
+                </h1>
+                <p class="text-sm text-slate-600 mt-1.5 max-w-2xl leading-relaxed">
+                  先通过<strong class="text-slate-800">单词卡</strong>掌握教材原文定义、商业搭配与例句，再进入<strong class="text-slate-800">四选一认词 → 听音默写 → 商科场景应用</strong>三步考核闭环。完成本章节考核即自动解锁下一章。
+                </p>
+              </div>
+              <div class="grid grid-cols-3 gap-2.5 sm:gap-3 shrink-0">
+                <div class="p-3 rounded-xl bg-white border border-slate-200/80 text-center">
+                  <div class="text-lg sm:text-xl font-bold text-brand-900">${completedCount}/${CHAPTERS_DATA.length}</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">已通章节</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white border border-slate-200/80 text-center">
+                  <div class="text-lg sm:text-xl font-bold text-slate-800">${totalWords}</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">总词汇量</div>
+                </div>
+                <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200/70 text-center cursor-pointer hover:bg-rose-100/70 transition" onclick="openErrorNotebook()">
+                  <div class="text-lg sm:text-xl font-bold text-rose-700">${errorCount}</div>
+                  <div class="text-[11px] text-rose-600 mt-0.5">待攻克错词</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 章节列表 -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">课程章节目录 (Chapters)</h2>
+              <span class="text-xs text-slate-400">学习进度自动保存在本地浏览器</span>
+            </div>
+            ${chaptersHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * ----------------------------------------------------------------------------
+     * 视图 2：章节学习主控（单词卡模式 / 三阶段考核模式 / 章节通关结算）
+     * ----------------------------------------------------------------------------
+     */
+    function renderChapterView(chapterId) {
+      const chapter = findChapterById(chapterId);
+      const prog = ensureChapterProgress(chapterId);
+
+      // 顶部章节面包屑与模式切换栏
+      const topBar = `
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div class="flex items-center gap-2 text-sm">
+            <button onclick="navigateHome()" class="text-slate-500 hover:text-brand-900 font-medium transition">← 章节目录</button>
+            <span class="text-slate-300">/</span>
+            <span class="font-bold text-slate-900">${chapter.number} · ${chapter.title}</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- 单词卡 / 考核模式切换 Tab -->
+            <div class="inline-flex bg-slate-200/70 p-1 rounded-xl">
+              <button onclick="switchChapterMode('${chapterId}', 'flashcards')"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${prog.mode === 'flashcards' ? 'bg-white text-brand-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                📇 单词卡 (${chapter.words.length})
+              </button>
+              <button onclick="switchChapterMode('${chapterId}', 'assessment')"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${prog.mode !== 'flashcards' ? 'bg-white text-brand-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                ✍️ 阶段考核
+              </button>
+            </div>
+
+            <button onclick="confirmResetChapter('${chapterId}')"
+              class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-medium transition"
+              title="重置本章学习与考核进度（保留历史错词统计）">
+              重置本章进度
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (prog.mode === 'flashcards') {
+        return topBar + renderFlashcardsDeck(chapter, prog);
+      } else if (prog.mode === 'assessment') {
+        return topBar + renderAssessmentSession(chapter, prog, false);
+      } else {
+        return topBar + renderChapterSummary(chapter, prog);
+      }
+    }
+
+    function switchChapterMode(chapterId, targetMode) {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const prog = ensureChapterProgress(chapterId);
+      prog.mode = targetMode;
+      saveState();
+      render();
+    }
+
+    function confirmResetChapter(chapterId) {
+      showConfirmModal(
+        '重置本章进度',
+        '确定要重置当前章节的单词卡浏览位置与考核答题进度吗？（注：错词本中的累计历史错误次数将予以保留，不会被清零。）',
+        () => {
+          const chapter = findChapterById(chapterId);
+          appState.chapterProgress[chapterId] = {
+            mode: 'flashcards',
+            flashcardIndex: 0,
+            viewedCards: [0],
+            currentStage: 1,
+            currentQuestionIndex: 0,
+            questions: buildThreeStageQuestions(chapter.words, chapter.words)
+          };
+          saveState();
+          render();
+          showToast('本章进度已重置');
+        }
+      );
+    }
+
+    /**
+     * ----------------------------------------------------------------------------
+     * 子视图 2A：精读单词卡 (FLASHCARDS DECK)
+     * ----------------------------------------------------------------------------
+     */
+    function renderFlashcardsDeck(chapter, prog) {
+      const idx = Math.min(Math.max(0, prog.flashcardIndex), chapter.words.length - 1);
+      const wordObj = chapter.words[idx];
+      const stat = getWordErrorStat(wordObj.id);
+
+      const isExamEssential = wordObj.tag === 'EXAM ESSENTIAL';
+      const tagStyle = isExamEssential
+        ? 'bg-amber-50 text-amber-800 border-amber-300'
+        : 'bg-brand-50 text-brand-800 border-brand-200';
+
+      // 词条快速跳转胶囊导航
+      const pillsHtml = chapter.words.map((w, i) => {
+        const isCurrent = i === idx;
+        const isViewed = prog.viewedCards && prog.viewedCards.includes(i);
+        let cls = 'bg-slate-100 text-slate-500 hover:bg-slate-200';
+        if (isCurrent) cls = 'bg-brand-900 text-white font-bold ring-2 ring-brand-900/20';
+        else if (isViewed) cls = 'bg-brand-50 text-brand-800 border border-brand-200';
+        return `<button onclick="goFlashcard(${i})" class="w-7 h-7 rounded-lg text-xs transition ${cls}">${i + 1}</button>`;
+      }).join('');
+
+      const collocationsHtml = wordObj.collocations.map(col => {
+        const parts = col.split('—');
+        if (parts.length === 2) {
+          return `
+            <div class="flex items-baseline justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/70 text-xs sm:text-sm">
+              <span class="font-semibold text-slate-800">${escapeHtml(parts[0].trim())}</span>
+              <span class="text-slate-500 text-right">${escapeHtml(parts[1].trim())}</span>
+            </div>
+          `;
+        }
+        return `<div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/70 text-xs sm:text-sm text-slate-700">${escapeHtml(col)}</div>`;
+      }).join('');
+
+      return `
+        <div class="fade-in space-y-5">
+          <!-- 卡片进度条与快捷序号 -->
+          <div class="academic-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${pillsHtml}
+            </div>
+            <div class="text-xs text-slate-500 font-medium">
+              已阅 ${prog.viewedCards ? prog.viewedCards.length : 1} / ${chapter.words.length} 词
+            </div>
+          </div>
+
+          <!-- 核心专业单词卡主体 -->
+          <div class="academic-card rounded-2xl p-6 sm:p-8 space-y-6">
+            <!-- 头部：编号、标签、词条、音标、发音按钮 -->
+            <div class="flex flex-wrap items-start justify-between gap-4 pb-5 border-b border-slate-100">
+              <div>
+                <div class="flex items-center gap-2.5 mb-2">
+                  <span class="text-xs font-mono font-bold text-slate-400">${wordObj.indexLabel}</span>
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider border ${tagStyle}">
+                    ${wordObj.tag}
+                  </span>
+                  ${stat.totalErrors > 0 ? `
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                      历史错 ${stat.totalErrors} 次
+                    </span>
+                  ` : ''}
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+                  ${escapeHtml(wordObj.word)}
+                </h1>
+                <div class="flex items-center gap-2.5 mt-2 text-sm text-slate-500">
+                  <span class="font-mono text-slate-600">${escapeHtml(wordObj.phonetic)}</span>
+                  <span>·</span>
+                  <span class="italic font-medium text-brand-800">${escapeHtml(wordObj.partOfSpeech)}</span>
+                </div>
+              </div>
+
+              <!-- 朗读发音按钮 -->
+              <button onclick="speakText('${escapeJsStr(wordObj.word)}')"
+                class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-900 border border-brand-200 font-semibold text-sm transition active:scale-95">
+                <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+                <span>朗读词条 (${appState.speechRate}x)</span>
+              </button>
+            </div>
+
+            <!-- 中文释义 -->
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">中文释义</div>
+              <div class="text-xl font-bold text-slate-900">${escapeHtml(wordObj.meaning)}</div>
+            </div>
+
+            <!-- 英文专业定义 & 中文理解 -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/80 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-brand-900">${escapeHtml(wordObj.definitionLabel)}</span>
+                <button onclick="speakText('${escapeJsStr(wordObj.definition)}')" class="text-xs text-brand-700 hover:underline flex items-center gap-1">
+                  🔊 听英文定义
+                </button>
+              </div>
+              <p class="text-sm sm:text-base font-medium text-slate-800 leading-relaxed">
+                ${escapeHtml(wordObj.definition)}
+              </p>
+              ${wordObj.extraNote ? `
+                <p class="text-xs sm:text-sm text-brand-800 bg-brand-50/80 px-3 py-2 rounded-lg border border-brand-100">
+                  ${escapeHtml(wordObj.extraNote)}
+                </p>
+              ` : ''}
+              <div class="pt-2 border-t border-slate-200/70">
+                <span class="text-xs font-semibold text-slate-500">中文理解：</span>
+                <span class="text-sm text-slate-700 leading-relaxed">${escapeHtml(wordObj.zhUnderstanding)}</span>
+              </div>
+            </div>
+
+            <!-- 商业例句 Example -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Example · 商业例句</span>
+                <button onclick="speakText('${escapeJsStr(wordObj.exampleEn)}')" class="text-xs text-slate-500 hover:text-brand-800 flex items-center gap-1">
+                  🔊 朗读例句
+                </button>
+              </div>
+              <p class="text-sm sm:text-base text-slate-800 font-medium leading-relaxed">
+                ${escapeHtml(wordObj.exampleEn)}
+              </p>
+              <p class="text-sm text-slate-500">
+                ${escapeHtml(wordObj.exampleZh)}
+              </p>
+            </div>
+
+            <!-- 常见商业搭配 Common Collocations -->
+            <div class="space-y-2">
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Common Collocations · 核心搭配</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${collocationsHtml}
+              </div>
+            </div>
+
+            <!-- 记忆技巧 Memory Tip -->
+            <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80">
+              <div class="text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                <span>💡 Memory Tip · 课程记忆要点</span>
+              </div>
+              <p class="text-xs sm:text-sm text-amber-950/90 leading-relaxed whitespace-pre-line">${escapeHtml(wordObj.memoryTip)}</p>
+            </div>
+          </div>
+
+          <!-- 底部翻卡与进入考核 CTA -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+              <button onclick="goFlashcard(${idx - 1})" ${idx === 0 ? 'disabled' : ''}
+                class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none text-slate-700 text-sm font-semibold transition">
+                ← 上一词
+              </button>
+              <button onclick="goFlashcard(${idx + 1})" ${idx === chapter.words.length - 1 ? 'disabled' : ''}
+                class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none text-slate-700 text-sm font-semibold transition">
+                下一词 →
+              </button>
+            </div>
+
+            <button onclick="switchChapterMode('${chapter.id}', 'assessment')"
+              class="w-full sm:w-auto px-6 py-3 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+              <span>已完成词卡复习，进入本章考核</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function goFlashcard(newIndex) {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const chapter = findChapterById(currentRoute.chapterId);
+      const prog = ensureChapterProgress(chapter.id);
+      if (newIndex < 0 || newIndex >= chapter.words.length) return;
+
+      prog.flashcardIndex = newIndex;
+      if (!prog.viewedCards) prog.viewedCards = [];
+      if (!prog.viewedCards.includes(newIndex)) {
+        prog.viewedCards.push(newIndex);
+      }
+      saveState();
+      render();
+    }
+
+    /**
+     * ----------------------------------------------------------------------------
+     * 子视图 2B：三阶段考核闭环（同时复用于章节考核与错词专项训练）
+     * ----------------------------------------------------------------------------
+     */
+    function renderAssessmentSession(chapter, sessionState, isErrorPractice = false) {
+      const stage = sessionState.currentStage; // 1 | 2 | 3
+      const qList = sessionState.questions[stage];
+      const qIdx = Math.min(sessionState.currentQuestionIndex, qList.length - 1);
+      const question = qList[qIdx];
+      const wordObj = findWordById(question.wordId);
+      const stat = getWordErrorStat(wordObj.id);
+
+      // 计算总体完成度
+      const totalQuestionsCount = [1, 2, 3].reduce((acc, s) => acc + sessionState.questions[s].length, 0);
+      const completedQuestionsCount = [1, 2, 3].reduce(
+        (acc, s) => acc + sessionState.questions[s].filter(q => q.submitted).length,
+        0
+      );
+      const progressPct = Math.round((completedQuestionsCount / totalQuestionsCount) * 100);
+
+      const stageNames = {
+        1: '阶段 1/3：四选一认词',
+        2: '阶段 2/3：听音与提示默写',
+        3: '阶段 3/3：商科场景应用'
+      };
+
+      // 阶段指示器
+      const stepperHtml = [1, 2, 3].map(s => {
+        const isCurrent = s === stage;
+        const isDone = s < stage || sessionState.questions[s].every(q => q.submitted);
+        let cls = 'bg-slate-100 text-slate-500 border-slate-200';
+        if (isCurrent) cls = 'bg-brand-900 text-white border-brand-900 font-bold';
+        else if (isDone) cls = 'bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold';
+        return `
+          <div class="flex-1 px-3 py-2 rounded-xl border text-center text-xs transition ${cls}">
+            ${isDone && !isCurrent ? '✓ ' : ''}${stageNames[s]}
+          </div>
+        `;
+      }).join('');
+
+      let questionBodyHtml = '';
+
+      // ==================== 阶段 1：四选一认词 ====================
+      if (stage === 1) {
+        const optionsHtml = question.options.map((opt, idx) => {
+          const letter = ['A', 'B', 'C', 'D'][idx];
+          let btnClass = 'bg-white hover:bg-brand-50/60 border-slate-200 hover:border-brand-300 text-slate-800';
+          let badgeClass = 'bg-slate-100 text-slate-600';
+
+          if (question.submitted) {
+            if (opt === question.correctAnswer) {
+              btnClass = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-semibold ring-1 ring-emerald-500';
+              badgeClass = 'bg-emerald-600 text-white';
+            } else if (opt === question.userAnswer && !question.isCorrect) {
+              btnClass = 'bg-rose-50 border-rose-400 text-rose-900';
+              badgeClass = 'bg-rose-600 text-white';
+            } else {
+              btnClass = 'bg-slate-50 border-slate-200 text-slate-400 opacity-70';
+            }
+          }
+
+          return `
+            <button onclick="submitChoiceAnswer('${escapeJsStr(opt)}')"
+              ${question.submitted ? 'disabled' : ''}
+              class="w-full text-left p-4 rounded-xl border transition flex items-center gap-3.5 ${btnClass}">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${badgeClass}">
+                ${letter}
+              </span>
+              <span class="text-sm sm:text-base leading-snug">${escapeHtml(opt)}</span>
+            </button>
+          `;
+        }).join('');
+
+        questionBodyHtml = `
+          <div class="text-center py-4 space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+              <span>请选择该商科词汇最准确的中文释义</span>
+            </div>
+            <div class="flex items-center justify-center gap-3">
+              <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">${escapeHtml(wordObj.word)}</h2>
+              <button onclick="speakText('${escapeJsStr(wordObj.word)}')"
+                class="p-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 transition"
+                title="播放发音">
+                🔊
+              </button>
+            </div>
+            <div class="text-xs font-mono text-slate-400">${escapeHtml(wordObj.phonetic)} · ${escapeHtml(wordObj.partOfSpeech)}</div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 mt-4">
+            ${optionsHtml}
+          </div>
+        `;
+      }
+
+      // ==================== 阶段 2：听音 + 首字母 + 中文释义默写 ====================
+      if (stage === 2) {
+        questionBodyHtml = `
+          <div class="space-y-5">
+            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-3">
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-400">听音与提示拼写</div>
+              <div class="text-xl sm:text-2xl font-bold text-slate-900">
+                ${escapeHtml(wordObj.meaning)}
+              </div>
+              <div class="text-xs text-slate-500">
+                词性：<span class="font-semibold text-brand-800">${escapeHtml(wordObj.partOfSpeech)}</span>
+                <span class="mx-2 text-slate-300">|</span>
+                首字母提示：<span class="font-mono font-bold text-base text-slate-800 tracking-widest bg-white px-2.5 py-0.5 rounded border border-slate-200">${escapeHtml(wordObj.firstLetterHint)}</span>
+              </div>
+              <div class="pt-1">
+                <button type="button" onclick="speakText('${escapeJsStr(wordObj.word)}')"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-xs sm:text-sm font-semibold shadow-xs transition">
+                  <span>🔊 播放读音 (${appState.speechRate}x)</span>
+                </button>
+                <span class="block text-[11px] text-slate-400 mt-1.5">提示：短语内部的空格必须保留（如 Organizational goals）；按 Enter 提交</span>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <label for="dictation-input" class="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                请输入完整英文单词或短语：
+              </label>
+              <div class="flex flex-col sm:flex-row gap-2.5">
+                <input id="dictation-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                  value="${escapeHtml(question.userAnswer || '')}"
+                  ${question.submitted ? 'disabled' : ''}
+                  onkeydown="handleDictationKeydown(event)"
+                  placeholder="在此输入英文拼写..."
+                  class="flex-1 px-4 py-3 rounded-xl border-2 text-base sm:text-lg font-mono focus:outline-none transition
+                  ${question.submitted
+                    ? (question.isCorrect ? 'border-emerald-500 bg-emerald-50/50 text-emerald-900' : 'border-rose-400 bg-rose-50/40 text-rose-900')
+                    : 'border-slate-300 focus:border-brand-600 bg-white text-slate-900'}" />
+
+                ${!question.submitted ? `
+                  <button type="button" onclick="submitDictationAnswer()"
+                    class="px-6 py-3 rounded-xl bg-brand-900 hover:bg-brand-800 text-white font-bold text-sm transition shrink-0">
+                    检查拼写
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ==================== 阶段 3：商科场景应用 ====================
+      if (stage === 3) {
+        const sentenceFormatted = escapeHtml(wordObj.contextQuestion.sentence).replace(
+          '______',
+          `<span class="inline-block min-w-[110px] px-2.5 py-0.5 mx-1 border-b-2 text-center font-bold ${
+            question.submitted
+              ? (question.isCorrect ? 'border-emerald-600 text-emerald-700 bg-emerald-50 rounded' : 'border-rose-500 text-rose-700 bg-rose-50 rounded')
+              : 'border-brand-600 text-brand-700 bg-brand-50/60 rounded'
+          }">${question.submitted ? escapeHtml(question.correctAnswer) : '______'}</span>`
+        );
+
+        const optionsHtml = question.options.map((opt, idx) => {
+          const letter = ['A', 'B', 'C', 'D'][idx];
+          let btnClass = 'bg-white hover:bg-brand-50/60 border-slate-200 hover:border-brand-300 text-slate-800';
+          let badgeClass = 'bg-slate-100 text-slate-600';
+
+          if (question.submitted) {
+            if (opt === question.correctAnswer) {
+              btnClass = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-semibold ring-1 ring-emerald-500';
+              badgeClass = 'bg-emerald-600 text-white';
+            } else if (opt === question.userAnswer && !question.isCorrect) {
+              btnClass = 'bg-rose-50 border-rose-400 text-rose-900';
+              badgeClass = 'bg-rose-600 text-white';
+            } else {
+              btnClass = 'bg-slate-50 border-slate-200 text-slate-400 opacity-70';
+            }
+          }
+
+          return `
+            <button onclick="submitChoiceAnswer('${escapeJsStr(opt)}')"
+              ${question.submitted ? 'disabled' : ''}
+              class="w-full text-left p-3.5 rounded-xl border transition flex items-center gap-3 ${btnClass}">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${badgeClass}">
+                ${letter}
+              </span>
+              <span class="text-sm sm:text-base font-semibold">${escapeHtml(opt)}</span>
+            </button>
+          `;
+        }).join('');
+
+        questionBodyHtml = `
+          <div class="space-y-4">
+            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div class="text-xs font-bold uppercase tracking-wider text-brand-800">商科语境选词填空</div>
+              <p class="text-base sm:text-lg text-slate-900 font-medium leading-relaxed">
+                ${sentenceFormatted}
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${optionsHtml}
+            </div>
+          </div>
+        `;
+      }
+
+      // ==================== 答题后的即时反馈与记忆锦囊面板 ====================
+      let feedbackHtml = '';
+      if (question.submitted) {
+        const showMemoryTip = !question.isCorrect && (stat.totalErrors >= 2 || stat.consecutiveErrors >= 2);
+        const isLastQuestionOfStage = qIdx === qList.length - 1;
+        const isLastStage = stage === 3;
+
+        let nextBtnText = '下一题 →';
+        if (isLastQuestionOfStage && !isLastStage) {
+          nextBtnText = `进入阶段 ${stage + 1}/3 →`;
+        } else if (isLastQuestionOfStage && isLastStage) {
+          nextBtnText = isErrorPractice ? '查看错词专项训练结果 →' : '完成本章考核并解锁下一章 🎉';
+        }
+
+        feedbackHtml = `
+          <div class="mt-6 pt-5 border-t border-slate-200 fade-in space-y-4">
+            <div class="p-4 rounded-2xl ${question.isCorrect ? 'bg-emerald-50 border border-emerald-200 text-emerald-950' : 'bg-rose-50 border border-rose-200 text-rose-950'}">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="font-bold text-sm sm:text-base flex items-center gap-2">
+                  <span>${question.isCorrect ? '✓ 回答正确！' : '✕ 回答有误（已自动收录至错词本）'}</span>
+                </div>
+                <div class="text-xs font-medium opacity-80">
+                  累计错误：${stat.totalErrors} 次 · 当前连错：${stat.consecutiveErrors} 次
+                </div>
+              </div>
+
+              ${!question.isCorrect && stage === 1 ? `
+                <p class="text-sm mt-1.5">标准释义：<strong class="font-bold">${escapeHtml(wordObj.meaning)}</strong></p>
+              ` : ''}
+
+              ${!question.isCorrect && stage === 2 ? buildSpellingDiffHtml(question.userAnswer, wordObj.word) : ''}
+
+              ${stage === 3 ? `
+                <p class="text-xs sm:text-sm mt-2 leading-relaxed">
+                  <strong>语境解析：</strong>${escapeHtml(wordObj.contextQuestion.explanation)}
+                </p>
+              ` : ''}
+            </div>
+
+            <!-- 当累计错误 >= 2 次时自动弹出静态预设记忆小贴士 -->
+            ${showMemoryTip ? `
+              <div class="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 shadow-xs">
+                <div class="text-xs font-bold text-amber-900 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <span>💡 反复易错 · 记忆锦囊（已累计错 ${stat.totalErrors} 次）</span>
+                </div>
+                <p class="text-xs sm:text-sm leading-relaxed whitespace-pre-line">${escapeHtml(wordObj.memoryTip)}</p>
+              </div>
+            ` : ''}
+
+            <div class="flex justify-end">
+              <button id="btn-next-question" onclick="advanceAssessmentQuestion()"
+                class="w-full sm:w-auto px-6 py-3 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-sm font-bold shadow-xs transition">
+                ${nextBtnText}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="fade-in space-y-5">
+          <!-- 顶部阶段进度条 -->
+          <div class="academic-card rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-700">
+                ${isErrorPractice ? '🎯 错词专项三阶段训练' : '📝 本章三阶段考核'} · 第 ${qIdx + 1} / ${qList.length} 题
+              </span>
+              <span class="font-semibold text-brand-800">总进度 ${progressPct}%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-brand-600 transition-all duration-300" style="width: ${progressPct}%"></div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 pt-1">
+              ${stepperHtml}
+            </div>
+          </div>
+
+          <!-- 题目主卡片 -->
+          <div class="academic-card rounded-2xl p-6 sm:p-8">
+            ${questionBodyHtml}
+            ${feedbackHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * 获取当前处于激活状态的考核会话（章节考核 或 错词专项训练）
+     */
+    function getActiveSession() {
+      if (currentRoute.view === 'error_practice' && currentRoute.practiceSession) {
+        return { session: currentRoute.practiceSession, isPractice: true };
+      }
+      if (currentRoute.view === 'chapter') {
+        const prog = ensureChapterProgress(currentRoute.chapterId);
+        return { session: prog, isPractice: false };
+      }
+      return null;
+    }
+
+    /**
+     * 提交选择题答案（阶段 1 认词 & 阶段 3 场景应用）
+     * 严格包含单题提交锁 (question.submitted)，绝不重复计数
+     */
+    function submitChoiceAnswer(selectedOption) {
+      const active = getActiveSession();
+      if (!active) return;
+      const { session, isPractice } = active;
+      const qList = session.questions[session.currentStage];
+      const question = qList[session.currentQuestionIndex];
+
+      // 单题防刷锁定检查
+      if (question.submitted) return;
+
+      const isCorrect = selectedOption === question.correctAnswer;
+      question.submitted = true;
+      question.userAnswer = selectedOption;
+      question.isCorrect = isCorrect;
+
+      // 更新全局双维度错误统计
+      recordWordAttempt(question.wordId, isCorrect);
+
+      if (!isPractice) saveState();
+      render();
+    }
+
+    /**
+     * 提交听音默写答案（阶段 2）
+     */
+    function submitDictationAnswer() {
+      const active = getActiveSession();
+      if (!active) return;
+      const { session, isPractice } = active;
+      const qList = session.questions[2];
+      const question = qList[session.currentQuestionIndex];
+
+      // 单题防刷锁定检查
+      if (question.submitted) return;
+
+      const inputEl = document.getElementById('dictation-input');
+      const rawInput = inputEl ? inputEl.value : '';
+
+      if (!rawInput.trim()) {
+        showToast('请先输入英文拼写后再提交检查');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+
+      const normalizedUser = normalizeDictationText(rawInput);
+      const normalizedTarget = normalizeDictationText(question.correctAnswer);
+      const isCorrect = normalizedUser === normalizedTarget;
+
+      question.submitted = true;
+      question.userAnswer = rawInput;
+      question.isCorrect = isCorrect;
+
+      recordWordAttempt(question.wordId, isCorrect);
+
+      if (!isPractice) saveState();
+      render();
+    }
+
+    function handleDictationKeydown(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const active = getActiveSession();
+        if (!active) return;
+        const q = active.session.questions[2][active.session.currentQuestionIndex];
+        if (!q.submitted) {
+          submitDictationAnswer();
+        } else {
+          advanceAssessmentQuestion();
+        }
+      }
+    }
+
+    /**
+     * 推进到下一题 / 下一阶段 / 完成结算
+     */
+    function advanceAssessmentQuestion() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const active = getActiveSession();
+      if (!active) return;
+      const { session, isPractice } = active;
+
+      const stage = session.currentStage;
+      const qList = session.questions[stage];
+
+      if (session.currentQuestionIndex < qList.length - 1) {
+        session.currentQuestionIndex += 1;
+      } else if (stage < 3) {
+        session.currentStage += 1;
+        session.currentQuestionIndex = 0;
+      } else {
+        // 全部三阶段已完成
+        if (isPractice) {
+          session.completed = true;
+        } else {
+          session.mode = 'summary';
+          completeChapterAndUnlockNext(currentRoute.chapterId);
+        }
+      }
+
+      if (!isPractice) saveState();
+      render();
+
+      // 若进入阶段 2 默写且尚未作答，自动聚焦输入框
+      setTimeout(() => {
+        const inputEl = document.getElementById('dictation-input');
+        if (inputEl && !inputEl.disabled) inputEl.focus();
+      }, 50);
+    }
+
+    /**
+     * 标记当前章节通关并解锁下一章（不限正确率）
+     */
+    function completeChapterAndUnlockNext(chapterId) {
+      if (!appState.completedChapters.includes(chapterId)) {
+        appState.completedChapters.push(chapterId);
+      }
+      const idx = CHAPTERS_DATA.findIndex(c => c.id === chapterId);
+      if (idx !== -1 && idx + 1 < CHAPTERS_DATA.length) {
+        const nextChId = CHAPTERS_DATA[idx + 1].id;
+        if (!appState.unlockedChapters.includes(nextChId)) {
+          appState.unlockedChapters.push(nextChId);
+        }
+      }
+      saveState();
+    }
+
+    /**
+     * ----------------------------------------------------------------------------
+     * 子视图 2C：章节通关结算页 (CHAPTER SUMMARY)
+     * ----------------------------------------------------------------------------
+     */
+    function renderChapterSummary(chapter, prog) {
+      let totalQ = 0;
+      let correctQ = 0;
+      const wrongWordIds = new Set();
+
+      [1, 2, 3].forEach(s => {
+        prog.questions[s].forEach(q => {
+          totalQ += 1;
+          if (q.isCorrect) correctQ += 1;
+          else wrongWordIds.add(q.wordId);
+        });
+      });
+
+      const accuracy = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 100;
+      const idx = CHAPTERS_DATA.findIndex(c => c.id === chapter.id);
+      const nextChapter = idx + 1 < CHAPTERS_DATA.length ? CHAPTERS_DATA[idx + 1] : null;
+
+      return `
+        <div class="fade-in academic-card rounded-2xl p-6 sm:p-8 text-center space-y-6">
+          <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl mx-auto">
+            🎓
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold mb-2">
+              ${chapter.number} · 考核流程已完成
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">
+              恭喜完成 ${chapter.title}！
+            </h2>
+            ${nextChapter ? `
+              <p class="text-sm text-brand-800 font-medium mt-2">
+                🔓 已自动为你解锁下一章：<strong>${nextChapter.number} · ${nextChapter.title}</strong>
+              </p>
+            ` : `
+              <p class="text-sm text-slate-600 mt-2">你已完成当前词库中的所有章节学习！</p>
+            `}
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 max-w-md mx-auto">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xl font-bold text-slate-900">${accuracy}%</div>
+              <div class="text-xs text-slate-500 mt-0.5">本轮正确率</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+              <div class="text-xl font-bold text-emerald-700">${correctQ}/${totalQ}</div>
+              <div class="text-xs text-emerald-700 mt-0.5">答对题数</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+              <div class="text-xl font-bold text-rose-700">${wrongWordIds.size}</div>
+              <div class="text-xs text-rose-600 mt-0.5">本轮错词数</div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+            ${wrongWordIds.size > 0 ? `
+              <button onclick="openChapterErrorFilter('${chapter.id}')"
+                class="px-5 py-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-bold transition">
+                前往错词本复习本章错词 (${wrongWordIds.size})
+              </button>
+            ` : ''}
+
+            ${nextChapter ? `
+              <button onclick="openChapter('${nextChapter.id}', 'flashcards')"
+                class="px-6 py-3 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-sm font-bold shadow-sm transition">
+                进入 ${nextChapter.number} 单词卡 →
+              </button>
+            ` : `
+              <button onclick="navigateHome()"
+                class="px-6 py-3 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-sm font-bold shadow-sm transition">
+                返回章节目录
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * ----------------------------------------------------------------------------
+     * 视图 3：增强版错词本 (ERROR NOTEBOOK · 按累计错误排序 + 按章节筛选 + 三步闭环重练)
+     * ----------------------------------------------------------------------------
+     */
+    function openChapterErrorFilter(chapterId) {
+      currentRoute.notebookFilter = chapterId;
+      openErrorNotebook();
+    }
+
+    function setNotebookFilter(val) {
+      currentRoute.notebookFilter = val;
+      render();
+    }
+
+    function getFilteredErrorWords() {
+      const allWords = CHAPTERS_DATA.flatMap(c => c.words);
+      return allWords
+        .filter(w => {
+          const stat = getWordErrorStat(w.id);
+          if (stat.totalErrors <= 0) return false;
+          if (currentRoute.notebookFilter !== 'all' && w.chapterId !== currentRoute.notebookFilter) {
+            return false;
+          }
+          return true;
+        })
+        // 按累计错误次数 totalErrors 从高到低排序
+        .sort((a, b) => getWordErrorStat(b.id).totalErrors - getWordErrorStat(a.id).totalErrors);
+    }
+
+    function renderErrorNotebookView() {
+      const filteredWords = getFilteredErrorWords();
+      const filterOptionsHtml = [
+        `<option value="all" ${currentRoute.notebookFilter === 'all' ? 'selected' : ''}>全部章节错词</option>`,
+        ...CHAPTERS_DATA.map(ch => `
+          <option value="${ch.id}" ${currentRoute.notebookFilter === ch.id ? 'selected' : ''}>
+            仅看 ${ch.number} · ${ch.title}
+          </option>
+        `)
+      ].join('');
+
+      const listHtml = filteredWords.length === 0
+        ? `
+          <div class="academic-card rounded-2xl p-10 text-center space-y-3">
+            <div class="text-4xl">✨</div>
+            <h3 class="text-lg font-bold text-slate-900">当前筛选条件下暂无错词记录</h3>
+            <p class="text-sm text-slate-500">在章节考核或专项训练中答错的词汇会自动收录于此，方便随时针对性攻克。</p>
+            <div class="pt-2">
+              <button onclick="navigateHome()" class="px-5 py-2.5 rounded-xl bg-brand-900 text-white text-sm font-semibold">
+                返回章节目录学习
+              </button>
+            </div>
+          </div>
+        `
+        : filteredWords.map(w => {
+            const stat = getWordErrorStat(w.id);
+            const ch = findChapterById(w.chapterId);
+            return `
+              <div class="academic-card rounded-2xl p-5 space-y-3">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-xs font-bold text-brand-800 bg-brand-50 px-2 py-0.5 rounded">${ch.number}</span>
+                      <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-xs font-bold">
+                        累计错误 ${stat.totalErrors} 次
+                      </span>
+                      <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-medium">
+                        当前连错 ${stat.consecutiveErrors} 次
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                      <h3 class="text-xl font-bold text-slate-900">${escapeHtml(w.word)}</h3>
+                      <span class="text-xs font-mono text-slate-400">${escapeHtml(w.phonetic)} · ${escapeHtml(w.partOfSpeech)}</span>
+                      <button onclick="speakText('${escapeJsStr(w.word)}')" class="text-brand-700 hover:text-brand-900 text-sm" title="朗读">🔊</button>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-800 mt-1">${escapeHtml(w.meaning)}</p>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-xs text-amber-950 leading-relaxed">
+                  <strong>💡 记忆锦囊：</strong>${escapeHtml(w.memoryTip)}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+      return `
+        <div class="fade-in space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <button onclick="navigateHome()" class="text-xs text-slate-500 hover:text-brand-900 font-medium mb-1 block">
+                ← 返回章节目录
+              </button>
+              <h1 class="text-2xl font-bold text-slate-900">错词本 · 历史薄弱词汇档案</h1>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                按累计错误次数由高到低排列（答对后不会清零历史累计错误次数，便于长期追踪高频卡点）
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5">
+              <select onchange="setNotebookFilter(this.value)"
+                class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:outline-none focus:border-brand-600">
+                ${filterOptionsHtml}
+              </select>
+
+              ${filteredWords.length > 0 ? `
+                <button onclick="startErrorPractice()"
+                  class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold shadow-xs transition flex items-center gap-1.5">
+                  <span>🎯 开启错词三阶段专项训练 (${filteredWords.length}词)</span>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="space-y-3.5">
+            ${listHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * ----------------------------------------------------------------------------
+     * 视图 4：错词专项三阶段训练 (ERROR NOTEBOOK 3-STAGE PRACTICE)
+     * ----------------------------------------------------------------------------
+     */
+    function startErrorPractice() {
+      const targetWords = getFilteredErrorWords();
+      if (targetWords.length === 0) return;
+
+      // 干扰项池：若筛选了某一章则优先用该章词库，否则用全库词池
+      const poolWords = currentRoute.notebookFilter === 'all'
+        ? CHAPTERS_DATA.flatMap(c => c.words)
+        : findChapterById(currentRoute.notebookFilter).words;
+
+      currentRoute.practiceSession = {
+        currentStage: 1,
+        currentQuestionIndex: 0,
+        completed: false,
+        questions: buildThreeStageQuestions(targetWords, poolWords)
+      };
+      currentRoute.view = 'error_practice';
+      render();
+    }
+
+    function renderErrorPracticeView() {
+      const session = currentRoute.practiceSession;
+      if (!session) {
+        openErrorNotebook();
+        return '';
+      }
+
+      const topBar = `
+        <div class="flex items-center justify-between gap-3 mb-5">
+          <button onclick="openErrorNotebook()" class="text-sm text-slate-500 hover:text-brand-900 font-medium transition">
+            ← 退出训练并返回错词本
+          </button>
+          <span class="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+            错词专项闭环重练（认词 → 默写 → 场景应用）
+          </span>
+        </div>
+      `;
+
+      if (session.completed) {
+        let totalQ = 0;
+        let correctQ = 0;
+        [1, 2, 3].forEach(s => {
+          session.questions[s].forEach(q => {
+            totalQ += 1;
+            if (q.isCorrect) correctQ += 1;
+          });
+        });
+
+        return topBar + `
+          <div class="fade-in academic-card rounded-2xl p-8 text-center space-y-5">
+            <div class="text-4xl">🏆</div>
+            <h2 class="text-2xl font-bold text-slate-900">错词专项三阶段训练完成！</h2>
+            <p class="text-sm text-slate-600">
+              本轮共完成 <strong>${totalQ}</strong> 道强化练习，答对 <strong class="text-emerald-700">${correctQ}</strong> 题。答对词汇的“当前连错次数”已清零。
+            </p>
+            <div class="pt-2">
+              <button onclick="openErrorNotebook()" class="px-6 py-3 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-sm font-bold transition">
+                返回错词本查看最新统计
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      return topBar + renderAssessmentSession(null, session, true);
+    }
+
+    /**
+     * ============================================================================
+     * 七、 工具函数与键盘快捷键支持
+     * ============================================================================
+     */
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeJsStr(str) {
+      if (!str) return '';
+      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      const text = document.getElementById('toast-msg');
+      if (!box || !text) return;
+      text.textContent = msg;
+      box.classList.remove('opacity-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('opacity-0');
+      }, 2400);
+    }
+
+    function showConfirmModal(title, desc, onConfirm) {
+      const overlay = document.getElementById('modal-overlay');
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-desc').textContent = desc;
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+
+      const close = () => {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      };
+
+      document.getElementById('modal-cancel').onclick = close;
+      document.getElementById('modal-confirm').onclick = () => {
+        close();
+        onConfirm();
+      };
+    }
+
+    // 全局键盘辅助：单词卡左右键切换、考核已提交时按 Enter 下一题
+    document.addEventListener('keydown', (e) => {
+      if (currentRoute.view === 'chapter') {
+        const prog = ensureChapterProgress(currentRoute.chapterId);
+        if (prog.mode === 'flashcards') {
+          if (e.key === 'ArrowLeft') goFlashcard(prog.flashcardIndex - 1);
+          if (e.key === 'ArrowRight') goFlashcard(prog.flashcardIndex + 1);
+        } else if (prog.mode === 'assessment' && e.key === 'Enter' && document.activeElement?.id !== 'dictation-input') {
+          const q = prog.questions[prog.currentStage][prog.currentQuestionIndex];
+          if (q && q.submitted) {
+            e.preventDefault();
+            advanceAssessmentQuestion();
+          }
+        }
+      } else if (currentRoute.view === 'error_practice' && e.key === 'Enter' && document.activeElement?.id !== 'dictation-input') {
+        const session = currentRoute.practiceSession;
+        if (session && !session.completed) {
+          const q = session.questions[session.currentStage][session.currentQuestionIndex];
+          if (q && q.submitted) {
+            e.preventDefault();
+            advanceAssessmentQuestion();
+          }
+        }
+      }
+    });
+
+    // 初始化首次渲染
+    window.addEventListener('DOMContentLoaded', () => {
+      render();
+    });
+  </script>
+</body>
+</html>
